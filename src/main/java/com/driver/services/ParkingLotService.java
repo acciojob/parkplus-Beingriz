@@ -1,5 +1,9 @@
 package com.driver.services;
 
+import com.driver.dto.responseDTO.UpdateSportResponse;
+import com.driver.model.ParkingLot;
+import com.driver.model.Spot;
+
 public interface ParkingLotService {
     
     void deleteSpot(int spotId);
@@ -10,5 +14,5 @@ public interface ParkingLotService {
 
     ParkingLot addParkingLot(String name, String address);
 
-    Spot addSpot(int parkingLotId, Integer numberOfWheels, Integer pricePerHour);
+    UpdateSportResponse addSpot(int parkingLotId, Integer numberOfWheels, Integer pricePerHour);
 }
