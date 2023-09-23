@@ -1,30 +1,44 @@
 package com.driver.model;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 public class ParkingLot {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private  int id; // by database
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int id;
 
-    private String name; // by client
-    private String address; // by client
+    private String name;
+
+    private String address;
+
 
     @OneToMany(mappedBy = "parkingLot", cascade = CascadeType.ALL)
-    List<Spot> spots = new ArrayList<>(); // by logic
+    private List<Spot> spotList = new ArrayList<>();
+
     public ParkingLot() {
     }
 
-
-    public ParkingLot(int id, String name, String address, List<Spot> spots) {
+    public ParkingLot(int id, String name, String address, List<Spot> spotList) {
         this.id = id;
         this.name = name;
         this.address = address;
-        this.spots = spots;
+        this.spotList = spotList;
     }
+
+    public ParkingLot(String name, String address, List<Spot> spotList) {
+        this.name = name;
+        this.address = address;
+        this.spotList = spotList;
+    }
+
 
     public int getId() {
         return id;
@@ -50,11 +64,11 @@ public class ParkingLot {
         this.address = address;
     }
 
-    public List<Spot> getSpots() {
-        return spots;
+    public List<Spot> getSpotList() {
+        return spotList;
     }
 
-    public void setSpots(List<Spot> spots) {
-        this.spots = spots;
+    public void setSpotList(List<Spot> spotList) {
+        this.spotList = spotList;
     }
 }

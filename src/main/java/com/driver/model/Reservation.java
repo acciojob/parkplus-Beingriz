@@ -1,36 +1,48 @@
 package com.driver.model;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 @Entity
-@Table(name = "reservation")
 public class Reservation {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
-    private int noOfHours; // by client
+    private int numberOfHours;
 
     @ManyToOne
     @JoinColumn
-    Spot spot; // by logic get the id and assign
+    private User user;
+    @ManyToOne
+    @JoinColumn
+    private Spot spot;
 
     @OneToOne(mappedBy = "reservation", cascade = CascadeType.ALL)
-    Payment payment;
-
-    @ManyToOne
-    @JoinColumn
-    User user;
+    private Payment payment;
 
     public Reservation() {
     }
 
-    public Reservation(int id, int noOfHours, Spot spot, Payment payment, User user) {
-        this.id = id;
-        this.noOfHours = noOfHours;
+    public Reservation(int numberOfHours, User user, Spot spot, Payment payment) {
+        this.numberOfHours = numberOfHours;
+        this.user = user;
         this.spot = spot;
         this.payment = payment;
+    }
+
+    public Reservation(int id, int numberOfHours, User user, Spot spot, Payment payment) {
+        this.id = id;
+        this.numberOfHours = numberOfHours;
         this.user = user;
+        this.spot = spot;
+        this.payment = payment;
     }
 
     public int getId() {
@@ -41,12 +53,20 @@ public class Reservation {
         this.id = id;
     }
 
-    public int getNoOfHours() {
-        return noOfHours;
+    public int getNumberOfHours() {
+        return numberOfHours;
     }
 
-    public void setNoOfHours(int noOfHours) {
-        this.noOfHours = noOfHours;
+    public void setNumberOfHours(int numberOfHours) {
+        this.numberOfHours = numberOfHours;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public Spot getSpot() {
@@ -63,13 +83,5 @@ public class Reservation {
 
     public void setPayment(Payment payment) {
         this.payment = payment;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 }

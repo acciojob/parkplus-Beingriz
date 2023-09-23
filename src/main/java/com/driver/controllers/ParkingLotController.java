@@ -1,16 +1,18 @@
 package com.driver.controllers;
 
-import com.driver.dto.responseDTO.UpdateSportResponse;
-import com.driver.services.ParkingLotService;
+import com.driver.model.ParkingLot;
+import com.driver.model.Spot;
 import com.driver.services.impl.ParkingLotServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import com.driver.model.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/parking-lots")
@@ -19,7 +21,7 @@ public class ParkingLotController {
     //findById and deleteById should be used wherever necessary
     //findAll should never be used
     @Autowired
-    ParkingLotService parkingLotService;
+    ParkingLotServiceImpl parkingLotService;
 
     @PostMapping("/add")
     public ResponseEntity<ParkingLot> addParkingLot(@RequestParam String name, @RequestParam String address) {
@@ -29,57 +31,32 @@ public class ParkingLotController {
     }
 
     @PostMapping("/{parkingLotId}/spot/add")
-    public ResponseEntity addSpot(@PathVariable int parkingLotId, @RequestParam Integer numberOfWheels, @RequestParam Integer pricePerHour) {
+    public ResponseEntity<Spot> addSpot(@PathVariable int parkingLotId, @RequestParam Integer numberOfWheels, @RequestParam Integer pricePerHour) {
         //create a new spot in the parkingLot with given id
         //the spot type should be the next biggest type in case the number of wheels are not 2 or 4, for 4+ wheels, it is others
-        try{
-            UpdateSportResponse newSpot =  parkingLotService.addSpot(parkingLotId,numberOfWheels,pricePerHour);
-            return new ResponseEntity<>(newSpot, HttpStatus.CREATED);
-        }catch (Exception e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-
-
+        Spot newSpot = parkingLotService.addSpot(parkingLotId, numberOfWheels, pricePerHour);
+        return new ResponseEntity<>(newSpot, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/spot/{spotId}/delete")
-    public ResponseEntity deleteSpot(@PathVariable int spotId) {
+    public ResponseEntity<Void> deleteSpot(@PathVariable int spotId) {
         //delete a spot from given parking lot
-        try {
-            parkingLotService.deleteSpot(spotId);
-            return new ResponseEntity<>(HttpStatus.OK);
-        }catch (Exception e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-
+        parkingLotService.deleteSpot(spotId);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PutMapping("/{parkingLotId}/spot/{spotId}/update")
-    public ResponseEntity updateSpot(@PathVariable int parkingLotId, @PathVariable int spotId, @RequestParam int pricePerHour) {
+    public ResponseEntity<Spot> updateSpot(@PathVariable int parkingLotId, @PathVariable int spotId, @RequestParam int pricePerHour) {
         //update the details of a spot
-        try{
-            UpdateSportResponse updatedSpot = parkingLotService.updateSpot(parkingLotId,spotId,pricePerHour);
-            return new ResponseEntity<>(updatedSpot, HttpStatus.OK);
-        }catch (Exception e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-
+        Spot updatedSpot = parkingLotService.updateSpot(parkingLotId, spotId, pricePerHour);
+        return new ResponseEntity<>(updatedSpot, HttpStatus.OK);
     }
 
     @DeleteMapping("/{parkingLotId}/delete")
-    public ResponseEntity deleteParkingLot(@PathVariable int parkingLotId) {
+    public ResponseEntity<Void> deleteParkingLot(@PathVariable int parkingLotId) {
         //delete a parkingLot
-        try {
-            parkingLotService.deleteParkingLot(parkingLotId);
-            return new ResponseEntity<>(HttpStatus.OK);
-        }catch (Exception e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-
-    }
-    @GetMapping("/list/{id}")
-    public List<String> namesofSpots(@PathVariable int id){
-        return parkingLotService.namesofSpots(id);
+        parkingLotService.deleteParkingLot(parkingLotId);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 }

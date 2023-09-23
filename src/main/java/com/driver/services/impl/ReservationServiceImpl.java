@@ -1,18 +1,21 @@
 package com.driver.services.impl;
 
-import com.driver.dto.responseDTO.ReservationResponse;
-import com.driver.exception.ParkingLotNotFoundException;
-import com.driver.exception.SpotNotFoundException;
-import com.driver.exception.UserNotFoundException;
-import com.driver.model.*;
+import com.driver.model.ParkingLot;
+import com.driver.model.Reservation;
+import com.driver.model.Spot;
+import com.driver.model.SpotType;
+import com.driver.model.User;
 import com.driver.repository.ParkingLotRepository;
 import com.driver.repository.ReservationRepository;
 import com.driver.repository.SpotRepository;
 import com.driver.repository.UserRepository;
 import com.driver.services.ReservationService;
+import com.driver.transformer.ReservationTransformer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,76 +29,57 @@ public class ReservationServiceImpl implements ReservationService {
     ReservationRepository reservationRepository3;
     @Autowired
     ParkingLotRepository parkingLotRepository3;
+
     @Override
-    public ReservationResponse reserveSpot(Integer userId, Integer parkingLotId, Integer timeInHours, Integer numberOfWheels) throws Exception {
-        /*
-        * Check user is Valid,
-        * Check Parking lot is Valid
-        * check is spot occipied is false
-        * check wheels and get price
-        * calculate price
-        * make DTP
-        * return
-        * */
-
-        // Check User
-        Optional<User> optionalUser =  userRepository3.findById(userId);
-        if(!optionalUser.isPresent()){
-            throw new UserNotFoundException("reservation cannot be made");
-        }
-        User user = optionalUser.get();
-
-        Optional<ParkingLot> optionalParkingLot = parkingLotRepository3.findById(parkingLotId);
-        if(!optionalParkingLot.isPresent()){
-            throw new ParkingLotNotFoundException("reservation cannot be made");
-        }
-        ParkingLot fetchedParkingLot  = optionalParkingLot.get();
-
-        SpotType spotType;
-        if(numberOfWheels >= 1 && numberOfWheels <=2){
-            spotType = SpotType.TWO_WHEELER;
-        } else if (numberOfWheels >= 3 && numberOfWheels <= 4) {
-            spotType = SpotType.FOUR_WHEELER;
-        }else spotType = SpotType.OTHERS;
-
-        int id = 0, price = 0;
-        boolean found = false;
-        for (Spot sp: fetchedParkingLot.getSpots()) {
-            if(sp.getSpotType().equals(spotType)){
-                if(!sp.isOccupied()){
-                  sp.setOccupied(true);
-                  price = sp.getPricePerHour();
-                  id = sp.getId();
-                  found = true;
-                  break;
-                }
+    public Reservation reserveSpot(Integer userId, Integer parkingLotId, Integer timeInHours, Integer numberOfWheels) throws Exception {
+        SpotType mySpotType;
+        switch (numberOfWheels) {
+            case 1:
+            case 2: {
+                mySpotType = SpotType.TWO_WHEELER;
+                break;
+            }
+            case 3:
+            case 4: {
+                mySpotType = SpotType.FOUR_WHEELER;
+                break;
+            }
+            default: {
+                mySpotType = SpotType.OTHERS;
+                break;
             }
         }
-        if(!found) throw new SpotNotFoundException("reservation cannot be made");
-        int total = price*timeInHours;
 
-        Reservation reservation = new Reservation();
-        reservation.setNoOfHours(timeInHours);
-        reservation.setUser(user);
-        reservation.setSpot(fetchedParkingLot.getSpots().get(id));
-        Reservation savedReservation = reservationRepository3.save(reservation);
+        Optional<ParkingLot> optionalParkingLot = parkingLotRepository3.findById(parkingLotId);
+        if (!optionalParkingLot.isPresent()) throw new Exception("Cannot make reservation");
 
-        Spot spot = savedReservation.getSpot();
-        spot.getReservations().add(savedReservation);
-        Spot savedSpot = spotRepository3.save(spot);
+        Optional<User> optionalUser = userRepository3.findById(userId);
+        if (!optionalUser.isPresent()) throw new Exception("Cannot make reservation");
 
-        User Reserveduser =  savedReservation.getUser();
-        Reserveduser.getReservations().add(savedReservation);
-        userRepository3.save(Reserveduser);
+        List<Spot> spotList = new ArrayList<>(optionalParkingLot.get().getSpotList());
+        spotList.sort(Comparator.comparingInt(Spot::getPricePerHour));
 
-        // DTO
+        Spot bestSpot = null;
+        for (Spot s : spotList) {
+            if (mySpotType == SpotType.OTHERS) {
+                if (s.getSpotType() != SpotType.OTHERS) continue;
+                bestSpot = s;
+                break;
+            } else if (mySpotType == SpotType.FOUR_WHEELER) {
+                if (s.getSpotType() == SpotType.FOUR_WHEELER || s.getSpotType() == SpotType.OTHERS) {
+                    bestSpot = s;
+                    break;
+                }
+            } else {
+                bestSpot = s;
+                break;
+            }
+        }
+        if (bestSpot == null) throw new Exception("Cannot make reservation");
 
-        ReservationResponse response = new ReservationResponse();
-        response.setNoOfHrs(savedReservation.getNoOfHours());
-        response.setParkingLotName(fetchedParkingLot.getName());
-        response.setSpotType(String.valueOf(savedSpot.getSpotType()));
-        response.setTotalCost(total);
-        response.setParkingLotId(fetchedParkingLot.getId());
-        return  response;
+        Reservation reservationTobeSaved = ReservationTransformer.toReservation(optionalUser.get(), timeInHours, bestSpot);
+        reservationRepository3.save(reservationTobeSaved);
+        return reservationTobeSaved;
+
     }
 }
