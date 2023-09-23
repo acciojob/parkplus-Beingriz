@@ -1,4 +1,5 @@
 package com.driver.controllers;
+import com.driver.dto.responseDTO.UpdateUserResponse;
 import com.driver.model.User;
 import com.driver.services.UserService;
 import com.driver.services.impl.UserServiceImpl;
@@ -14,16 +15,29 @@ public class UserController {
     UserService userService;
     @PostMapping("/register")
     public ResponseEntity<Void> registerUser(@RequestParam String name, @RequestParam String phoneNumber, @RequestParam String password){
+        userService.register(name,phoneNumber,password);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PutMapping("/update")
-    public ResponseEntity<User> updatePassword(@RequestParam Integer userId, @RequestParam String password){
-        User updatedUser = new User();
-        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+    public ResponseEntity updatePassword(@RequestParam Integer userId, @RequestParam String password){
+       try{
+           UpdateUserResponse updatedUser = userService.updatePassword(userId,password);
+           return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+       }catch (Exception e){
+           return new ResponseEntity<>(e.getMessage(), HttpStatus.OK);
+       }
+
     }
 
     @DeleteMapping("/delete")
-    public void deleteUser(@RequestParam Integer userId){
+    public ResponseEntity deleteUser(@RequestParam Integer userId){
+
+        try{
+            userService.deleteUser(userId);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.OK);
+        }
     }
 }

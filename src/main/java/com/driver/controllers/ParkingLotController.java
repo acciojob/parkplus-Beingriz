@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 import com.driver.model.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/parking-lots")
 public class ParkingLotController {
@@ -41,22 +43,43 @@ public class ParkingLotController {
     }
 
     @DeleteMapping("/spot/{spotId}/delete")
-    public ResponseEntity<Void> deleteSpot(@PathVariable int spotId) {
+    public ResponseEntity deleteSpot(@PathVariable int spotId) {
         //delete a spot from given parking lot
-        return new ResponseEntity<>(HttpStatus.OK);
+        try {
+            parkingLotService.deleteSpot(spotId);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
     }
 
     @PutMapping("/{parkingLotId}/spot/{spotId}/update")
-    public ResponseEntity<Spot> updateSpot(@PathVariable int parkingLotId, @PathVariable int spotId, @RequestParam int pricePerHour) {
+    public ResponseEntity updateSpot(@PathVariable int parkingLotId, @PathVariable int spotId, @RequestParam int pricePerHour) {
         //update the details of a spot
-        Spot updatedSpot = new Spot();
-        return new ResponseEntity<>(updatedSpot, HttpStatus.OK);
+        try{
+            UpdateSportResponse updatedSpot = parkingLotService.updateSpot(parkingLotId,spotId,pricePerHour);
+            return new ResponseEntity<>(updatedSpot, HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
     }
 
     @DeleteMapping("/{parkingLotId}/delete")
-    public ResponseEntity<Void> deleteParkingLot(@PathVariable int parkingLotId) {
+    public ResponseEntity deleteParkingLot(@PathVariable int parkingLotId) {
         //delete a parkingLot
-        return new ResponseEntity<>(HttpStatus.OK);
+        try {
+            parkingLotService.deleteParkingLot(parkingLotId);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
+    }
+    @GetMapping("/list/{id}")
+    public List<String> namesofSpots(@PathVariable int id){
+        return parkingLotService.namesofSpots(id);
     }
 
 }

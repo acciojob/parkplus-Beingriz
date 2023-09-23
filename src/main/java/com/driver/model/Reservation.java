@@ -9,11 +9,11 @@ public class Reservation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private int noOfHours;
+    private int noOfHours; // by client
 
     @ManyToOne
     @JoinColumn
-    Spot spot;
+    Spot spot; // by logic get the id and assign
 
     @OneToOne(mappedBy = "reservation", cascade = CascadeType.ALL)
     Payment payment;
